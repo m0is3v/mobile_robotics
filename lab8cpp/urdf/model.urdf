@@ -1,0 +1,242 @@
+<?xml version="1.0"?>
+<robot name="my_robot" xmlns:xacro="http://www.ros.org/wiki/xacro">
+
+    <xacro:include filename="$(find lab8cpp)/urdf/mobile_base_gazebo.xacro" />
+
+    <!-- ===== PROPERTIES ===== -->
+    <xacro:property name="base_length" value="0.6" />
+    <xacro:property name="base_width" value="0.4" />
+    <xacro:property name="base_height" value="0.2" />
+    <xacro:property name="wheel_radius" value="0.1" />
+    <xacro:property name="wheel_length" value="0.05" />
+    <xacro:property name="mass" value="1.0" />
+
+    <!-- ===== MATERIALS ===== -->
+    <material name="white">
+        <color rgba="1 1 1 1" />
+    </material>
+    <material name="grey">
+        <color rgba="0.7 0.7 0.7 1" />
+    </material>
+    <material name="green">
+        <color rgba="0 0.9 0 1" />
+    </material>
+
+    <!-- ===== МАКРОС ДЛЯ РАСЧЕТА ИНЕРЦИИ ПАРАЛЛЕЛЕПИПЕДА ===== -->
+    <xacro:macro name="box_inertia" params="m x y z o_xyz o_rpy">
+        <inertial>
+        <mass value="${m}" />
+        <origin xyz="${o_xyz}" rpy="${o_rpy}" />
+            <inertia
+                ixx="${(m/12) * (z*z + y*y)}"
+                ixy="0"
+                ixz="0"
+                iyy="${(m/12) * (x*x + z*z)}"
+                iyz="0"
+                izz="${(m/12) * (x*x + y*y)}"
+            />
+        </inertial>
+    </xacro:macro>
+    <!-- ===== МАКРОС ДЛЯ РАСЧЕТА ИНЕРЦИИ ЦИЛИНДРА ===== -->
+    <xacro:macro name="cylinder_inertia" params="m r l o_xyz o_rpy">
+        <inertial>
+            <mass value="${m}" />
+            <origin xyz="${o_xyz}" rpy="${o_rpy}" />
+            <inertia
+                ixx="${(m/12) * (3*r*r + l*l)}"
+                ixy="0"
+                ixz="0"
+                iyy="${(m/12) * (3*r*r + l*l)}"
+                iyz="0"
+                izz="${(m/2) * (r*r)}"
+            />
+        </inertial>
+    </xacro:macro>
+    <!-- ===== МАКРОС ДЛЯ РАСЧЕТА ИНЕРЦИИ СФЕРЫ ===== -->
+    <xacro:macro name="sphere_inertia" params="m r o_xyz o_rpy">
+        <inertial>
+        <mass value="${m}" />
+        <origin xyz="${o_xyz}" rpy="${o_rpy}" />
+            <inertia
+                ixx="${(2/5) * m * r * r}"
+                ixy="0"
+                ixz="0"
+                iyy="${(2/5) * m * r * r}"
+                iyz="0"
+                izz="${(2/5) * m * r * r}"
+            />
+        </inertial>
+    </xacro:macro>
+
+
+
+    <!-- ===== BASE FOOTPRINT ===== -->
+    <link name="base_footprint"/>
+
+    <!-- ===== BASE LINK ===== -->
+    <link name="base_link">
+        <visual>
+            <geometry>
+                <box size="${base_length} ${base_width} ${base_height}" />
+            </geometry>
+            <origin xyz="0 0 ${base_height / 2.0}" rpy="0 0 0" />
+            <material name="green"/>
+        </visual>
+
+        <!-- ===== ИНЕРЦИОННЫЕ СВОЙСТВА ===== -->
+        <xacro:box_inertia
+            m="5.0"
+            x="${base_length}"
+            y="${base_width}"
+            z="${base_height}"
+            o_xyz="0 0 ${base_height / 2.0}"
+            o_rpy="0 0 0"
+        />
+
+        <collision>
+            <geometry>
+                <box size="${base_length} ${base_width} ${base_height}" />
+            </geometry>
+            <origin xyz="0 0 ${base_height / 2.0}" rpy="0 0 0" />
+        </collision>
+
+    </link>
+
+    <!-- ===== LIDAR ===== -->
+    <joint name="laser_joint" type="fixed">
+        <parent link="base_link"/>
+        <child link="laser_frame"/>
+        <origin xyz="0 0 0.225" rpy="0 0 0"/>
+    </joint>
+
+    <link name="laser_frame">
+        <visual>
+            <geometry>
+                <cylinder radius="0.1" length="0.05"/>
+            </geometry>
+            <origin xyz="0 0 0" rpy="0 0 0"/>
+            <material name="white"/>
+        </visual>
+        <collision>
+            <geometry>
+                <cylinder radius="0.1" length="0.05"/>
+            </geometry>
+            <origin xyz="0 0 0" rpy="0 0 0"/>
+        </collision>
+    </link>
+    
+    <!-- ===== LEFT WHEEL ===== -->
+    <link name="left_wheel">
+        <visual>
+            <geometry>
+                <cylinder radius="${wheel_radius}" length="${wheel_length}"/>
+            </geometry>
+            <origin xyz="0 0 0" rpy="${pi/2} 0 0"/>
+            <material name="grey"/>
+        </visual>
+
+        <!-- ===== ИНЕРЦИОННЫЕ СВОЙСТВА КОЛЕСА ===== -->
+        <xacro:cylinder_inertia
+            m="1.0"
+            r="${wheel_radius}"
+            l="${wheel_length}"
+            o_xyz="0 0 0"
+            o_rpy="${pi / 2.0} 0 0"
+        />
+
+        <collision>
+            <geometry>
+                <cylinder radius="${wheel_radius}" length="${wheel_length}"/>
+            </geometry>
+            <origin xyz="0 0 0" rpy="${pi/2} 0 0"/>
+        </collision>
+    </link>
+
+    <!-- ===== RIGHT WHEEL ===== -->
+    <link name="right_wheel">
+        <visual>
+            <geometry>
+                <cylinder radius="${wheel_radius}" length="${wheel_length}"/>
+            </geometry>
+            <origin xyz="0 0 0" rpy="${pi/2} 0 0"/>
+            <material name="grey"/>
+        </visual>
+
+        <!-- ===== ИНЕРЦИОННЫЕ СВОЙСТВА КОЛЕСА ===== -->
+        <xacro:cylinder_inertia
+            m="1.0"
+            r="${wheel_radius}"
+            l="${wheel_length}"
+            o_xyz="0 0 0"
+            o_rpy="${pi / 2.0} 0 0"
+        />
+
+        <collision>
+            <geometry>
+                <cylinder radius="${wheel_radius}" length="${wheel_length}"/>
+            </geometry>
+            <origin xyz="0 0 0" rpy="${pi/2} 0 0"/>
+        </collision>
+    </link>
+
+    <!-- ===== CASTER WHEEL ===== -->
+    <link name="caster_wheel">
+        <visual>
+            <geometry>
+                <sphere radius="${wheel_radius / 2.0}"/>
+            </geometry>
+            <origin xyz="0 0 0" rpy="0 0 0"/>
+            <material name="grey"/>
+        </visual>
+
+        <!-- ===== ИНЕРЦИОННЫЕ СВОЙСТВА ===== -->
+        <xacro:sphere_inertia
+            m="0.5"
+            r="${wheel_radius / 2.0}"
+            o_xyz="0 0 0"
+            o_rpy="0 0 0"
+        />
+
+        <collision>
+            <geometry>
+                <sphere radius="${wheel_radius / 2.0}"/>
+            </geometry>
+            <origin xyz="0 0 0" rpy="0 0 0"/>
+        </collision>
+    </link>
+
+    <!-- ===== JOINTS ===== -->
+    <!-- Base to footprint joint -->
+    <joint name="base_joint" type="fixed">
+        <parent link="base_footprint"/>
+        <child link="base_link"/>
+        <origin xyz="0 0 0.1" rpy="0 0 0"/>
+    </joint>
+
+    <!-- Base to lidar joint -->
+    
+
+    <!-- Left wheel joint -->
+    <joint name="base_left_wheel_joint" type="continuous">
+        <parent link="base_link"/>
+        <child link="left_wheel"/>
+        <origin xyz="${-base_length / 4.0} ${(base_width + wheel_length) / 2.0} 0" rpy="0 0 0" />
+        <axis xyz="0 1 0" />
+    </joint>
+
+    <!-- Right wheel joint -->
+    <joint name="base_right_wheel_joint" type="continuous">
+        <parent link="base_link"/>
+        <child link="right_wheel"/>
+        <origin xyz="${-base_length / 4.0} ${-(base_width + wheel_length) / 2.0} 0" rpy="0 0 0" />
+        <axis xyz="0 1 0" />
+    </joint>
+
+    <!-- Caster wheel joint -->
+    <joint name="base_caster_wheel_joint" type="fixed">
+        <parent link="base_link"/>
+        <child link="caster_wheel"/>
+        <origin xyz="${base_length / 3.0} 0 ${-wheel_radius / 2.0}" rpy="0 0 0" />
+    </joint>
+
+</robot>

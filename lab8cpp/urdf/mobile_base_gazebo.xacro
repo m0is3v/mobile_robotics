@@ -1,0 +1,68 @@
+<?xml version="1.0"?>
+<robot xmlns:xacro="http://www.ros.org/wiki/xacro">
+    <!-- ===== ПЛАГИН ДИФФЕРЕНЦИАЛЬНОГО ПРИВОДА ===== -->
+    <gazebo>
+        <plugin filename="gz-sim-diff-drive-system" name="gz::sim::systems::DiffDrive">
+            <left_joint>base_left_wheel_joint</left_joint>
+            <right_joint>base_right_wheel_joint</right_joint>
+            <wheel_separation>0.45</wheel_separation>
+            <wheel_radius>0.1</wheel_radius>
+
+            <topic>/model/my_robot/cmd_vel</topic>
+            
+            <frame_id>odom</frame_id>
+            <child_frame_id>base_footprint</child_frame_id>
+            <odom_topic>/odom</odom_topic>            
+            <tf_topic>/tf</tf_topic>
+
+        </plugin>
+    </gazebo>
+    <!-- ===== ПЛАГИН ПУБЛИКАЦИИ СОСТОЯНИЙ СУСТАВОВ ===== -->
+    <gazebo>
+        <plugin filename="gz-sim-joint-state-publisher-system" name="gz::sim::systems::JointStatePublisher">
+            <topic>/joint_states</topic>
+            <joint_name>base_left_wheel_joint</joint_name>
+            <joint_name>base_right_wheel_joint</joint_name>
+        </plugin>
+    </gazebo>
+    <!-- ===== ФИЗИЧЕСКИЕ СВОЙСТВА ПАССИВНОГО КОЛЕСА ===== -->
+    <gazebo reference="caster_wheel">
+        <mu1 value="0.01" />
+        <mu2 value="0.01" />
+    </gazebo>
+
+        <!-- ========== ПЛАГИН ЛИДАРА ДЛЯ GAZEBO HARMONIC ========== -->
+    <gazebo reference="laser_frame">
+        <sensor name="laser" type="gpu_lidar"> 
+        
+            <pose>0 0 0 0 0 0</pose>
+            
+            <update_rate>10</update_rate>
+            <lidar> 
+                <scan>
+                    <horizontal>
+                        <samples>360</samples>
+                        <min_angle>-3.14</min_angle>
+                        <max_angle>3.14</max_angle>
+                    </horizontal>
+                </scan>
+                <range>
+                    <min>0.3</min>
+                    <max>12</max>
+                </range>
+            </lidar>
+            <always_on>1</always_on>
+            <visualize>false</visualize> 
+            
+            <plugin
+                name="gz::sim::systems::Sensors" 
+                filename="gz-sim-sensors-system"> 
+                
+                <topicName>scan</topicName> 
+                <frameName>laser_frame</frameName>
+                
+            </plugin>
+        </sensor>
+    </gazebo>
+    <!-- ========== КОНЕЦ ПЛАГИНА ========== -->
+</robot>
